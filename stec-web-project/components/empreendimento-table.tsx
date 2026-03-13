@@ -18,9 +18,9 @@ interface EmpreendimentoTableProps {
 
 export function EmpreendimentoTable({ empreendimentos }: EmpreendimentoTableProps) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Empreendimentos em Santa Catarina</CardTitle>
+    <Card className="overflow-hidden">
+      <CardHeader className="border-b bg-muted/30">
+        <CardTitle className="text-base">Empreendimentos cadastrados</CardTitle>
       </CardHeader>
       <CardContent>
         <Table>
