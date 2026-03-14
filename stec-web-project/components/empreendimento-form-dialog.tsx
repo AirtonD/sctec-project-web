@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Empreendimento, Segmento, Status } from "@/types/empreendimento";
 import { SEGMENTOS, MUNICIPIOS_SC } from "@/types/empreendimento";
 import {
@@ -9,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,10 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus } from "lucide-react";
 
 interface EmpreendimentoFormDialogProps {
+  empreendimento?: Empreendimento | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onSubmit: (empreendimento: Omit<Empreendimento, "id">) => void;
+  onUpdate?: (empreendimento: Empreendimento) => void;
 }
 
 const initialForm = {
@@ -36,9 +38,38 @@ const initialForm = {
   status: "ativo" as Status,
 };
 
-export function EmpreendimentoFormDialog({ onSubmit }: EmpreendimentoFormDialogProps) {
-  const [open, setOpen] = useState(false);
+export function EmpreendimentoFormDialog({
+  empreendimento,
+  open,
+  onOpenChange,
+  onSubmit,
+  onUpdate,
+}: EmpreendimentoFormDialogProps) {
   const [form, setForm] = useState(initialForm);
+  const isEdit = !!empreendimento;
+
+  useEffect(() => {
+    if (open) {
+      if (empreendimento) {
+        setForm({
+          nome: empreendimento.nome,
+          empreendedor: empreendimento.empreendedor,
+          municipio: empreendimento.municipio,
+          segmento: empreendimento.segmento,
+          email: empreendimento.email,
+          status: empreendimento.status,
+        });
+      } else {
+        setForm(initialForm);
+      }
+    } else {
+      setForm(initialForm);
+    }
+  }, [open, empreendimento]);
+
+  const handleOpenChange = (next: boolean) => {
+    onOpenChange(next);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,37 +82,38 @@ export function EmpreendimentoFormDialog({ onSubmit }: EmpreendimentoFormDialogP
     ) {
       return;
     }
-    onSubmit({
-      nome: form.nome.trim(),
-      empreendedor: form.empreendedor.trim(),
-      municipio: form.municipio,
-      segmento: form.segmento,
-      email: form.email.trim(),
-      status: form.status,
-    });
+    if (isEdit && empreendimento && onUpdate) {
+      onUpdate({
+        ...empreendimento,
+        nome: form.nome.trim(),
+        empreendedor: form.empreendedor.trim(),
+        municipio: form.municipio,
+        segmento: form.segmento,
+        email: form.email.trim(),
+        status: form.status,
+      });
+    } else {
+      onSubmit({
+        nome: form.nome.trim(),
+        empreendedor: form.empreendedor.trim(),
+        municipio: form.municipio,
+        segmento: form.segmento,
+        email: form.email.trim(),
+        status: form.status,
+      });
+    }
     setForm(initialForm);
-    setOpen(false);
-  };
-
-  const handleOpenChange = (next: boolean) => {
-    setOpen(next);
-    if (!next) setForm(initialForm);
+    onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={
-          <Button>
-            <Plus className="size-4" />
-            Novo empreendimento
-          </Button>
-        }
-      />
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Cadastrar empreendimento</DialogTitle>
+            <DialogTitle>
+              {isEdit ? "Editar empreendimento" : "Cadastrar empreendimento"}
+            </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -107,7 +139,7 @@ export function EmpreendimentoFormDialog({ onSubmit }: EmpreendimentoFormDialogP
             <div className="grid gap-2">
               <Label>Município de Santa Catarina</Label>
               <Select
-                value={form.municipio || undefined}
+                value={form.municipio}
                 onValueChange={(v) => setForm({ ...form, municipio: v ?? "" })}
                 required
               >
@@ -126,7 +158,7 @@ export function EmpreendimentoFormDialog({ onSubmit }: EmpreendimentoFormDialogP
             <div className="grid gap-2">
               <Label>Segmento de atuação</Label>
               <Select
-                value={form.segmento || undefined}
+                value={form.segmento}
                 onValueChange={(v) => setForm({ ...form, segmento: (v ?? "") as Segmento })}
                 required
               >
@@ -170,10 +202,10 @@ export function EmpreendimentoFormDialog({ onSubmit }: EmpreendimentoFormDialogP
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit">Cadastrar</Button>
+            <Button type="submit">{isEdit ? "Salvar alterações" : "Cadastrar"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

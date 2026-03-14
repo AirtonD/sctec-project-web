@@ -10,13 +10,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Pencil, Trash2 } from "lucide-react";
 
 interface EmpreendimentoTableProps {
   empreendimentos: Empreendimento[];
+  onEdit?: (empreendimento: Empreendimento) => void;
+  onDelete?: (empreendimento: Empreendimento) => void;
 }
 
-export function EmpreendimentoTable({ empreendimentos }: EmpreendimentoTableProps) {
+export function EmpreendimentoTable({
+  empreendimentos,
+  onEdit,
+  onDelete,
+}: EmpreendimentoTableProps) {
   return (
     <Card>
       <CardHeader>
@@ -32,12 +40,18 @@ export function EmpreendimentoTable({ empreendimentos }: EmpreendimentoTableProp
               <TableHead>Segmento</TableHead>
               <TableHead>Contato</TableHead>
               <TableHead>Status</TableHead>
+              {(onEdit || onDelete) && (
+                <TableHead className="w-[100px] text-right">Ações</TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
             {empreendimentos.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                <TableCell
+                  colSpan={onEdit || onDelete ? 7 : 6}
+                  className="text-center text-muted-foreground py-8"
+                >
                   Nenhum empreendimento cadastrado.
                 </TableCell>
               </TableRow>
@@ -56,6 +70,33 @@ export function EmpreendimentoTable({ empreendimentos }: EmpreendimentoTableProp
                       {emp.status}
                     </Badge>
                   </TableCell>
+                  {(onEdit || onDelete) && (
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        {onEdit && (
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => onEdit(emp)}
+                            aria-label={`Editar ${emp.nome}`}
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                        )}
+                        {onDelete && (
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => onDelete(emp)}
+                            aria-label={`Excluir ${emp.nome}`}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}
