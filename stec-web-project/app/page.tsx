@@ -28,7 +28,7 @@ function loadEmpreendimentos(): Empreendimento[] {
       return parsed as Empreendimento[];
     }
   } catch {
-    // ignore malformed storage
+    // ignore malformed payloads
   }
 
   return mockEmpreendimentos;
@@ -53,7 +53,7 @@ export default function Home() {
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(empreendimentos));
     } catch {
-      // ignore write failures (e.g., storage disabled)
+      // ignore write failures
     }
   }, [empreendimentos]);
 

@@ -1,59 +1,40 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun } from "lucide-react";
 
-const STORAGE_KEY = "empreendimentos-theme";
-
-type ThemeMode = "light" | "dark";
-
-const toggleMode = (mode: ThemeMode): ThemeMode => (mode === "dark" ? "light" : "dark");
-
-function resolveStoredMode(): ThemeMode {
-  if (typeof window === "undefined") {
-    return "light";
-  }
-
-  const stored = window.localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
-  if (stored) {
-    return stored;
-  }
-
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
-
 export function ThemeToggle() {
-  const [mode, setMode] = useState<ThemeMode>(() => resolveStoredMode());
+  const [mounted, setMounted] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
-    if (typeof document === "undefined") {
-      return;
-    }
-    document.documentElement.dataset.theme = mode;
-    try {
-      window.localStorage.setItem(STORAGE_KEY, mode);
-    } catch {
-      // Ignore storage errors.
-    }
-  }, [mode]);
+    setMounted(true);
+  }, []);
 
-  const handleToggle = () => {
-    setMode((current) => toggleMode(current));
-  };
+  if (!mounted) {
+    return (
+      <Button variant="ghost" size="icon" className="size-9">
+        <span className="sr-only">Carregando tema</span>
+      </Button>
+    );
+  }
+
+  const isDark = theme === "dark";
+  const nextTheme = isDark ? "light" : "dark";
 
   return (
     <Button
-      variant="outline"
+      variant="ghost"
       size="icon"
-      onClick={handleToggle}
-      aria-label="Alternar tema"
+      className="relative size-9"
+      onClick={() => setTheme(nextTheme)}
+      aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
     >
-      {mode === "dark" ? (
-        <Sun className="size-4" aria-hidden />
-      ) : (
-        <Moon className="size-4" aria-hidden />
-      )}
+      <Sun className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+      <Moon className="absolute size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <span className="sr-only">Alternar tema</span>
     </Button>
   );
 }
